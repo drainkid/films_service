@@ -2,7 +2,7 @@ import {Box, FormControl, InputLabel, MenuItem, OutlinedInput, Select} from "@mu
 import {useSearchParams} from "react-router";
 import React, {useEffect, useState} from "react";
 
-const allGenres = ['драма', 'комедия', 'триллер', 'боевик', 'фантастика', 'ужасы'];
+const allGenres = ['драма', 'комедия', 'триллер', 'боевик', 'фантастика', 'ужасы', 'криминал', 'детектив'];
 const years = Array.from({ length: new Date().getFullYear() - 1989 }, (_, i) => 1990 + i)
 const ratings = Array.from({ length: 10 }, (_, i) => i + 1);
 

@@ -8,9 +8,9 @@ type UseFetchMoviesReturn = [
     () => void
 ]
 export const useFetchMovies = (callback: (signal: AbortSignal) => Promise<void>): UseFetchMoviesReturn => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const abortControllerRef = useRef<AbortController | null>(null);
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     const fetching = async (): Promise<void> => {
         try {

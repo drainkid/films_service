@@ -1,32 +1,39 @@
-import {Avatar, Box, Button, Chip, CircularProgress, Rating, Typography} from '@mui/material';
+import {Alert, Avatar, Box, Button, Chip, CircularProgress, Rating, Typography} from '@mui/material';
 import {useNavigate, useParams} from 'react-router';
 import {useEffect, useState} from 'react';
 import {fetchMovieById} from '../api/kinopoisk.ts';
 import type {Movie} from '../types.ts';
 import NavBar from "../components/navBar.tsx";
+import {useFetchMovies} from "../hooks/useFetchMovies.ts";
+import ConfirmModal from "../components/confirmModal.tsx";
+import {useFavorites} from "../hooks/useFavorites.ts";
 
 const AboutFilmPage = () => {
-    const {id} = useParams();
-    const navigate = useNavigate();
-    const [movie, setMovie] = useState<Movie | null>(null);
-    const [loading, setLoading] = useState(true);
+    const {id} = useParams()
+    const navigate = useNavigate()
+    const [movie, setMovie] = useState<Movie | null>(null)
+    const [openModal, setOpenModal] = useState(false)
+
+    const [loadMovie, loading, error, resetError] = useFetchMovies(async () => {
+        if (!id) return;
+        const res = await fetchMovieById(id)
+        setMovie(res.data);
+
+    })
 
     useEffect(() => {
-        if (!id) return;
+        loadMovie()
+    }, [id])
 
-        const loadMovie = async () => {
-            try {
-                const res = await fetchMovieById(id);
-                setMovie(res.data);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { addFavorite, isFavorite } = useFavorites()
 
-        loadMovie();
-    }, [id]);
+
+    const handleConfirm = () => {
+        if (addFavorite) {
+            addFavorite(movie as Movie);
+        }
+        setOpenModal(false)
+    }
 
     const formatDate = (isoDate: Date | null): string => {
         if (!isoDate) return '—';
@@ -114,14 +121,57 @@ const AboutFilmPage = () => {
                             ))}
                         </Box>
 
-                        <Box mt={4}>
+                        <Box mt={4} display={'flex'} gap={2}>
                             <Button variant="outlined" onClick={() => navigate(-1)}>
                                 Назад
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                onClick={() => setOpenModal(true)}
+                                disabled={isFavorite ? isFavorite(movie.id) : true}
+                            >
+
+                                {!(isFavorite) || isFavorite(movie.id) ? "В избранном" : " в избранное"}
                             </Button>
                         </Box>
                     </Box>
                 </Box>
             </Box>
+            {error && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        position: "fixed",
+                        top: 16,
+                        right: 16,
+                        zIndex: 1300,
+                        width: 300,
+                        boxShadow: 3,
+                    }}
+                    action={
+                        <Button
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                resetError()
+                                loadMovie()
+                            }}
+                        >
+                            Попробовать снова
+                        </Button>
+                    }
+                >
+                    Ошибка загрузки фильмов: {error || "Что-то пошло не так"}
+                </Alert>
+            )}
+
+            <ConfirmModal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+                onConfirm={handleConfirm}
+                title={movie.name || movie.alternativeName || "фильм"}
+            />
+
         </>
     );
 };

@@ -24,7 +24,7 @@ const ConfirmModal = ({ open, onClose, onConfirm, title }: Props) => (
             </Button>
             <Button
                 onClick={(e) => {
-                    e.stopPropagation(); // <-- на всякий случай
+                    e.stopPropagation()
                     onConfirm();
                 }}
                 variant="contained"
