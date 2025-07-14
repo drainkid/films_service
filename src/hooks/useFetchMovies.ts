@@ -1,10 +1,11 @@
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 
 type UseFetchMoviesReturn = [
     () => Promise<void>,
     boolean,
-        string | null
+    string | null,
+    () => void
 ]
 export const useFetchMovies = (callback: (signal: AbortSignal) => Promise<void>): UseFetchMoviesReturn => {
     const [isLoading, setIsLoading] = useState(false);
@@ -41,5 +42,15 @@ export const useFetchMovies = (callback: (signal: AbortSignal) => Promise<void>)
         }
     };
 
-    return [ fetching, isLoading, error ]
+    const resetError = () => setError(null);
+
+    useEffect(() => {
+        return () => {
+            if (abortControllerRef.current?.signal.aborted === false) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
+
+    return [ fetching, isLoading, error, resetError ]
 };

@@ -1,4 +1,5 @@
 import {AppBar, Box, Button, Toolbar, Typography} from "@mui/material";
+import {Link} from "react-router";
 
 
 const NavBar = () => {
@@ -9,8 +10,8 @@ const NavBar = () => {
                     <Typography
                         variant="h6"
                         noWrap
-                        component="a"
-                        href="/"
+                        component={Link}
+                        to="/"
                         sx={{
                             mr: 2,
                             display: { xs: 'none', md: 'flex' },
@@ -21,9 +22,16 @@ const NavBar = () => {
                             textDecoration: 'none',
                         }}
                     >
-                        films
+                        FILMS
                     </Typography>
-                    <Button color={'inherit'}> избранное </Button>
+                    <Button
+                        component={Link}
+                        to="/favorites"
+                        color="inherit"
+                        sx={{ ml: 'auto' }} // Прижать вправо при необходимости
+                    >
+                        Избранное
+                    </Button>
                 </Toolbar>
             </AppBar>
         </Box>

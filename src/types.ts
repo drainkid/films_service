@@ -1,4 +1,5 @@
 export interface Movie {
+    createdAt: Date |null;
     ageRating: number | null;
     alternativeName: string | null;
     countries: Array<{

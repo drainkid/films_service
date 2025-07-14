@@ -42,7 +42,6 @@ const MovieFilters = React.memo (() => {
              mb={2}
              px={2}
         >
-            {/* Жанры */}
             <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel>Жанры</InputLabel>
                 <Select
@@ -64,7 +63,6 @@ const MovieFilters = React.memo (() => {
                 </Select>
             </FormControl>
 
-            {/* Рейтинг (диапазон) */}
             <Box display="flex" gap={2}>
                 <FormControl sx={{ minWidth: 120 }}>
                     <InputLabel>Рейтинг от</InputLabel>
@@ -98,7 +96,6 @@ const MovieFilters = React.memo (() => {
                 </FormControl>
             </Box>
 
-            {/* Годы (диапазон) */}
             <Box display="flex" gap={2}>
                 <FormControl sx={{ minWidth: 120 }}>
                     <InputLabel>Год от</InputLabel>
@@ -115,6 +112,7 @@ const MovieFilters = React.memo (() => {
                         ))}
                     </Select>
                 </FormControl>
+
                 <FormControl sx={{ minWidth: 120 }}>
                     <InputLabel>Год до</InputLabel>
                     <Select
@@ -130,6 +128,7 @@ const MovieFilters = React.memo (() => {
                         ))}
                     </Select>
                 </FormControl>
+
             </Box>
         </Box>
     );

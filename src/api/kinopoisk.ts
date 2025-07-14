@@ -54,5 +54,10 @@ export const fetchMovies = async ({page, limit, filters = {}, signal}: MovieRequ
     return await api.get('/movie', {
         params,
         signal,
-    });
+    })
+
+}
+
+export const fetchMovieById = async (id: string) => {
+    return await api.get(`/movie/${id}`)
 };

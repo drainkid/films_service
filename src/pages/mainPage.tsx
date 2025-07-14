@@ -1,35 +1,27 @@
+import {Alert, Box, Button, CircularProgress, Typography} from "@mui/material"
+import {useCallback, useEffect, useMemo, useState} from "react"
+import type {Movie, MoviesList} from "../types.ts"
+import MovieFilters from "../components/movieFilters.tsx"
+import {useInfiniteScroll} from "../hooks/useInfiniteScroll.ts"
+import {useSearchParams} from "react-router"
+import {useDebounce} from "../hooks/useDebounce.ts"
+import MovieCard from "../components/movieCard.tsx"
+import {useFetchMovies} from "../hooks/useFetchMovies.ts"
+import {fetchMovies} from "../api/kinopoisk.ts"
 import NavBar from "../components/navBar.tsx";
-import {Alert, Box, CircularProgress, Typography} from "@mui/material";
-import {useCallback, useEffect, useMemo, useState} from "react";
-import type {Movie, MoviesList} from "../types.ts";
-import MovieFilters from "../components/MovieFilters.tsx";
-import {useInfiniteScroll} from "../hooks/useInfiniteScroll.ts";
-import {useSearchParams} from "react-router";
-import {useDebounce} from "../hooks/useDebounce.ts";
-import MovieCard from "../components/movieCard.tsx";
-import {useFetchMovies} from "../hooks/useFetchMovies.ts";
-import {fetchMovies} from "../api/kinopoisk.ts";
+import {useFavorites} from "../hooks/useFavorites.ts";
 
 const MainPage = () => {
-    const [movies, setMovies] = useState<MoviesList>([]);
-    const [hasMore, setHasMore] = useState(true);
-    const [page, setPage] = useState(1);
-    const [searchParams] = useSearchParams();
+    const [movies, setMovies] = useState<MoviesList>([])
+    const [hasMore, setHasMore] = useState(true)
+    const [page, setPage] = useState(1)
+    const [searchParams] = useSearchParams()
+    const [isInitialRender, setIsInitialRender] = useState(true)
 
-    const filters = useMemo(() => ({
-        genres: searchParams.get('genres'),
-        ratingFrom: searchParams.get('ratingFrom'),
-        ratingTo: searchParams.get('ratingTo'),
-        yearFrom: searchParams.get('yearFrom'),
-        yearTo: searchParams.get('yearTo'),
-    }), [searchParams]);
-
-    const debouncedFilters = useDebounce(filters,500)
-
-    const [getMovies, isLoading, error] =
+    const [getMovies, isLoading, error, resetError] =
         useFetchMovies(async (signal) => {
 
-            if (isLoading || !hasMore) return;
+            if (isLoading || !hasMore || error) return;
 
             const res = await fetchMovies({
                 page: page,
@@ -51,22 +43,38 @@ const MainPage = () => {
                 setHasMore(false)
             }
 
-    })
+        })
 
+    const { addFavorite, isFavorite } = useFavorites()
+
+    const filters = useMemo(() => ({
+        genres: searchParams.get('genres'),
+        ratingFrom: searchParams.get('ratingFrom'),
+        ratingTo: searchParams.get('ratingTo'),
+        yearFrom: searchParams.get('yearFrom'),
+        yearTo: searchParams.get('yearTo'),
+    }), [searchParams]);
+
+    const debouncedFilters = useDebounce(filters,500)
+
+
+
+    // Вызываем getMovies только после завершения дебаунса
     useEffect(() => {
-        if (page === 1 && movies.length === 0) {
-            getMovies(); // вызов при первом рендере
+        if (isInitialRender) {
+            setIsInitialRender(false)
+            return
         }
-    }, []);
+        if (!error) {
+            getMovies()
+        }
+    }, [page, debouncedFilters, isInitialRender, error])
 
     useEffect(() => {
-        setPage(1);
-        setMovies([]);
-        setHasMore(true);
-
-        // Вызываем getMovies вручную для page === 1
-        getMovies();
-    }, [debouncedFilters]);
+        setPage(1)
+        setMovies([])
+        setHasMore(true)
+    }, [debouncedFilters])
 
 
     // Callback для IntersectionObserver
@@ -74,7 +82,7 @@ const MainPage = () => {
         if (!isLoading && hasMore) {
             setPage(prev => prev + 1)
         }
-    }, []);
+    }, [isLoading, hasMore, error]);
 
     const [ lastElementRef ] = useInfiniteScroll({
         isLoading,
@@ -85,8 +93,7 @@ const MainPage = () => {
 
     return (
         <Box>
-            <NavBar />
-
+            <NavBar/>
             <Box
                 display="flex"
                 flexDirection="row"
@@ -110,8 +117,30 @@ const MainPage = () => {
                 </Box>
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        Ошибка загрузки фильмов: {error || 'Что-то пошло не так'}
+                    <Alert
+                        severity="error"
+                        sx={{
+                            position: "fixed",
+                            top: 16,
+                            right: 16,
+                            zIndex: 1300,
+                            width: 300,
+                            boxShadow: 3,
+                        }}
+                        action={
+                            <Button
+                                color="inherit"
+                                size="small"
+                                onClick={() => {
+                                    resetError()
+                                    getMovies()
+                                }}
+                            >
+                                Попробовать снова
+                            </Button>
+                        }
+                    >
+                        Ошибка загрузки фильмов: {error || "Что-то пошло не так"}
                     </Alert>
                 )}
 
@@ -125,7 +154,12 @@ const MainPage = () => {
                 >
 
                     {movies.map((movie) => (
-                        <MovieCard movieInf={movie} key={movie.id} />
+                        <MovieCard
+                            movieInf={movie}
+                            key={movie.id}
+                            addFavorite={addFavorite}
+                            isFavorite={isFavorite}
+                        />
                     ))}
 
                     {(hasMore) && (
